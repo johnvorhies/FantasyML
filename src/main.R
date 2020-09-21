@@ -1,19 +1,34 @@
 require('mclust')
 require('ggplot2')
-source('~/projects/fftiers/src/ff-functions.R')
 
-### Parameters
-options(echo=TRUE)
-args 	<- commandArgs(trailingOnly = TRUE)
+#----------------For sourcing from RStudio-----------------
+# Getting the path of your current open file
+require('rstudioapi')
+current_path = rstudioapi::getActiveDocumentContext()$path
+setwd(dirname(current_path ))
+setwd('..')
 download = TRUE
+#-----------------------End RStudio-----------------------
 
-if (length(args) != 1) {
-	print('Expected args format: Rscript main.R TRUE/FALSE')
-	stopifnot(FALSE)
-}
-download = toupper(as.character(args[1]))
-if (download=='T') download = TRUE
-if (download=='F') download = FALSE
+#---------------For running from terminal--------------
+# setwd(system("pwd", intern = T) )
+# print( getwd() )
+# 
+# ### Parameters
+# options(echo=TRUE)
+# args 	<- commandArgs(trailingOnly = TRUE)
+# download = TRUE
+# 
+# if (length(args) != 1) {
+# 	print('Expected args format: Rscript main.R TRUE/FALSE')
+# 	stopifnot(FALSE)
+# }
+# download = toupper(as.character(args[1]))
+# if (download=='T') download = TRUE
+# if (download=='F') download = FALSE
+#--------------End terminal----------------------------
+
+source('src/ff-functions.R',chdir=T)
 
 year			     = 2020
 weekonetuesday = "2020-09-08"  # Put the date of the Tuesday of Week 1 here.
@@ -22,19 +37,17 @@ thisweek 		   = max(0, thisweek) # 0 for pre-draft
 download.ros 	 = FALSE
 useold 			   = FALSE	# Do we want to use the original version of the charts?
 
-#download = FALSE		# Do we want to download fresh data from fantasypros?
-
 ### Set and create input / output directories
 
 mkdir <- function(dir){
 	system(paste("mkdir -p", dir))
 }
-datdir = "~/projects/fftiers/dat/2020/"; mkdir(datdir)
-outputdir = paste("~/projects/fftiers/out/week", thisweek, "/", sep=""); mkdir(outputdir)
-outputdircsv = paste("~/projects/fftiers/out/week", thisweek, "/csv/", sep=""); mkdir(outputdircsv)
-outputdirpng = paste("~/projects/fftiers/out/week", thisweek, "/png/", sep=""); mkdir(outputdirpng)
-outputdirtxt = paste("~/projects/fftiers/out/week", thisweek, "/txt/", sep=""); mkdir(outputdirtxt)
-gd.outdir = "~/projects/fftiers/out/current/"; mkdir(gd.outdir)
+datdir = "dat/2020/"; mkdir(datdir)
+outputdir = paste("out/week", thisweek, "/", sep=""); mkdir(outputdir)
+outputdircsv = paste("out/week", thisweek, "/csv/", sep=""); mkdir(outputdircsv)
+outputdirpng = paste("out/week", thisweek, "/png/", sep=""); mkdir(outputdirpng)
+outputdirtxt = paste("out/week", thisweek, "/txt/", sep=""); mkdir(outputdirtxt)
+gd.outdir = "out/current/"; mkdir(gd.outdir)
 gd.outputdircsv = paste(gd.outdir, "csv/", sep=""); mkdir(gd.outputdircsv)
 gd.outputdirpng = paste(gd.outdir, "png/", sep=""); mkdir(gd.outputdirpng)
 gd.outputdirtxt = paste(gd.outdir, "txt/", sep=""); mkdir(gd.outputdirtxt)

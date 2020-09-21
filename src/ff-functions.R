@@ -1,36 +1,33 @@
 
-download.py.call <- function(json_dest, csv_dest, position, scoring) {
-	year = '2020'
-	me = system('whoami', intern = TRUE)
-	parent = 'Users'
-	if (me=='ubuntu') parent = 'home'
-	if (me=='borischen') parent = 'Users'
-	api_call = paste('python /',parent,'/',me,'/projects/fftiers/src/fp_api.py -j ',json_dest,' -c ',csv_dest,' -y ',year,' -p ',position,' -w ',thisweek,' -s ',scoring,sep='')
-	#dl_call = paste('python /',parent,'/',me,'/projects/fftiers/src/fp_dl.py -u ',url,' -d ',dest,' -c ',csv_dest,' -n ',ncol,sep='')
-	print(api_call)
-	system(api_call)
+download.py.call <- function(url, dl_dest, csv_dest, position, scoring) {
+  dl_call = paste('/opt/anaconda3/bin/python3 src/fp_dl.py -u ',url,' -d ',dl_dest,' -c ',csv_dest,sep='')
+  #-------------debug---------------------------
+  print(paste('url: ', url, sep=''))
+  print(paste('raw_csv_dest: ', dl_dest, sep=''))
+  print(paste('csv_dest: ', csv_dest, sep=''))
+  print(dl_call)
+  #-----------end debug-------------------------
+	system(dl_call)
 }
 
 download.data <- function(pos.list=c('rb','wr','te','flx'), scoring='STD') {
-	# filters=22:64:113:120:125:127:317:406:534
-	# filters=64:113:120:125:127:317:406:534
+	exp_filter <- c("22:64:113:120:125:127:317:406:534")
+	exp_filter <- c("")
 	if (download == TRUE) {
 		for (mp in pos.list) {
 			Sys.sleep(1)
 			position = toupper(mp)
-		 	#rmold1 = paste('rm ~/projects/fftiers/dat/2020/week-', thisweek, '-',mp,'-raw.txt', sep='')
-		 	#system(rmold1)
-		 	if (thisweek == 0)
-		 		url = paste('https://www.fantasypros.com/nfl/rankings/',mp,'-cheatsheets.php', sep='')
-		 	if (thisweek != 0)
-		  		url = paste('https://www.fantasypros.com/nfl/rankings/',mp,'.php?week=',thisweek,'\\&export=xls', sep='')
 
-		  	#url = paste('https://www.fantasypros.com/nfl/rankings/',mp,'.php?filters=64:113:120:125:127:317:406:534\\&week=',thisweek,'\\&export=xls', sep='')
-		  	head.dir = '~/projects/fftiers/dat/2020/week-'
-		  	pos.scoring = paste(position, scoring, sep='-')
-		  	json_dest = paste(head.dir, thisweek, '-', pos.scoring, '.json', sep="")
-			csv_dest = paste(head.dir, thisweek, '-', pos.scoring ,'-raw.csv', sep="")
-		    download.py.call(json_dest, csv_dest, position, scoring)
+		 	if (thisweek == 0) {
+		 		url <- paste('https://www.fantasypros.com/nfl/rankings/',mp,'-cheatsheets.php', sep='')
+		 	} else {
+		 	  url <- paste('https://www.fantasypros.com/nfl/rankings/',mp,'.php?filters=',exp_filter,'\\&week=',thisweek,'\\&export=xls', sep='')
+		 	}
+		  	head.dir <- 'dat/2020/week-'
+		  	pos.scoring <- paste(position, scoring, sep='-')
+		  	dl_dest <- paste(head.dir, thisweek, '-', pos.scoring, '-raw.xls', sep="")
+			  csv_dest <- paste(head.dir, thisweek, '-', pos.scoring ,'-raw.csv', sep="")
+		    download.py.call(url, dl_dest, csv_dest, position, scoring)
 	 	}
 	}
 }
@@ -40,17 +37,17 @@ download.data <- function(pos.list=c('rb','wr','te','flx'), scoring='STD') {
 download.predraft.data <- function() {
 	# overall rankings download:
 
-	base_dest = '~/projects/fftiers/dat/2020/week-0-ALL-STD-raw'
+	base_dest = 'dat/2020/week-0-ALL-STD-raw'
 	dest = paste(base_dest, '.txt',sep='')
 	csv_dest = paste(base_dest, '.csv',sep='')
 	download.py.call(dest, csv_dest, position='ALL', scoring='STD')
 
-	base_dest = '~/projects/fftiers/dat/2020/week-0-ALL-PPR-raw'
+	base_dest = 'dat/2020/week-0-ALL-PPR-raw'
 	dest = paste(base_dest, '.txt',sep='')
 	csv_dest = paste(base_dest, '.csv',sep='')
 	download.py.call(dest, csv_dest, position='ALL', scoring='PPR')
 
-	base_dest = '~/projects/fftiers/dat/2020/week-0-ALL-HALF-PPR-raw'
+	base_dest = 'dat/2020/week-0-ALL-HALF-PPR-raw'
 	dest = paste(base_dest, '.txt',sep='')
 	csv_dest = paste(base_dest, '.csv',sep='')
 	#download.py.call(dest, csv_dest, position='ALL', scoring='half-point-ppr')
@@ -84,14 +81,25 @@ draw.tiers <- function(pos='all', low=1, high=100, k=3, adjust=0, XLOW=0, highco
 	position = toupper(pos);
 	pos.scoring = paste(position, scoring, sep='-')
 	tpos = pos.scoring
-	head.dir = '~/projects/fftiers/dat/2020/week-'
+	head.dir = 'dat/2020/week-'
 	csv_path = paste(head.dir, thisweek, '-', pos.scoring ,'-raw.csv', sep="")
 	if (pos == 'all-ppr') csv_path 		= paste(head.dir, thisweek, '-', position ,'-raw.csv', sep="")
 	if (pos == 'all-half-ppr') csv_path = paste(head.dir, thisweek, '-', position ,'-raw.csv', sep="")
 
 	dat = read.delim(csv_path, sep=",")
-	if (thisweek == 0) colnames(dat)= c("Rank","Player.Name","Position","Best.Rank","Worst.Rank","Avg.Rank","Std.Dev")
-	if (thisweek >= 1) colnames(dat)= c("Rank","Player.Name","Matchup","Best.Rank","Worst.Rank","Avg.Rank","Std.Dev")
+	dat <- dat[, !(colnames(dat) %in% c("WSIS"))]
+
+	if (thisweek == 0) {
+	  colnames(dat)= c("Rank","Player.Name","Position","Best.Rank","Worst.Rank","Avg.Rank","Std.Dev")
+	} else if (thisweek >= 1 & position == 'FLX') {
+	  colnames(dat) = c("Rank","Player.Name","Position","Matchup","Best.Rank","Worst.Rank","Avg.Rank","Std.Dev")
+	} else {
+	  colnames(dat)= c("Rank","Player.Name","Matchup","Best.Rank","Worst.Rank","Avg.Rank","Std.Dev")
+	}
+	
+	# Remove excess characters from player name
+	dat$Player.Name <- sub('\\|.*','',dat$Player.Name)
+	
 	if (k <= 10) highcolor <- 360
 	if (k > 11) highcolor <- 450
 	if (k > 13) highcolor <- 550
@@ -142,7 +150,7 @@ error.bar.plot <- function(pos="NA", low=1, high=24, k=8, format="NA", title="du
 	this.pos$mcluster <-  mclust$class
 
 
-	# if there were less clusters than we asked for, shift the indicies
+	# if there were less clusters than we asked for, shift the indices
 	clusters.found <- levels(factor(this.pos$mcluster))
 	clusters.found = as.numeric(clusters.found)
 	for (i in 1:k) {
@@ -213,15 +221,15 @@ error.bar.plot <- function(pos="NA", low=1, high=24, k=8, format="NA", title="du
     	p = p + geom_text(aes(label=Player.Name, colour=Tier, y = Avg.Rank - nchar/5 - Std.Dev/1.5), size=font)
 	if (tpos %in% tinyfont)
     	p = p + geom_text(aes(label=Player.Name, colour=Tier, y = Avg.Rank - nchar/3 - Std.Dev/1.8), size=font)
-    if ((tpos == 'ALL') | (tpos == 'ALL-PPR')) {
-        	p = p + geom_text(aes(label=Player.Name, colour=Tier, y = Avg.Rank - nchar/3 - Std.Dev/1.8), size=font)
-        	p = p + geom_text(aes(label=Position, y = Avg.Rank + Std.Dev/1.8 + 1), size=font, colour='#888888') }
-    p = p + scale_x_continuous("Expert Consensus Rank")
-    p = p + ylab("Average Expert Rank")
-    p = p + theme(legend.justification=c(1,1), legend.position=c(1,1))
-    p = p + scale_colour_discrete(name="Tier")
+  if ((tpos == 'ALL') | (tpos == 'ALL-PPR')) {
+    p = p + geom_text(aes(label=Player.Name, colour=Tier, y = Avg.Rank - nchar/3 - Std.Dev/1.8), size=font)
+    p = p + geom_text(aes(label=Position, y = Avg.Rank + Std.Dev/1.8 + 1), size=font, colour='#888888') }
+  p = p + scale_x_continuous("Expert Consensus Rank")
+  p = p + ylab("Average Expert Rank")
+  p = p + theme(legend.justification=c(1,1), legend.position=c(1,1))
+  p = p + scale_colour_discrete(name="Tier")
 	p = p + scale_colour_hue(l=55, h=c(0, highcolor))
-    maxy = max( abs(this.pos$Avg.Rank)+this.pos$Std.Dev/2)
+  maxy = max(abs(this.pos$Avg.Rank)+this.pos$Std.Dev/2)
 
 	if (tpos  != 'FLX') p = p + ylim(-5, maxy)
     if ((tpos == "FLX") | (tpos=="FLX-PPR")| (tpos=="WR-PPR")  | (tpos == "FLX-HALF") | (tpos == "WR-HALF")) p = p + ylim(0-XLOW, maxy)
