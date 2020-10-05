@@ -1,5 +1,11 @@
-Welcome to borischen.co's Fantasy Football Tiers
+# FantasyML - Machine learning algorithms for Fantasy Football
+Forked from Boris Chen's [fftiers](https://github.com/borisachen/fftiers)
 
-Here lies the code used for generating the tiers behind www.borischen.co.
+# Features
+* A clustering algorithm for discovering tiers in player rankings
 
-All data is exclusively from www.fantasypros.com.
+# Dependencies
+WIP
+
+# Usage
+WIP
