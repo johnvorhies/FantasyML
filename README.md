@@ -1,5 +1,5 @@
 # FantasyML 
-Machine learning algorithms for fantasy football
+Machine learning algorithms for fantasy football.
 Forked from Boris Chen's [fftiers](https://github.com/borisachen/fftiers)
 
 ## Features
